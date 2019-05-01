@@ -47,19 +47,7 @@ public class Window extends JFrame {
     }
 
     public void setDisabled() {
-        if (playerID == 1) {
-            if (turnCount % 2 != 0) {
-                this.disabled = false;
-            } else {
-                this.disabled = true;
-            }
-        } else {
-            if (turnCount % 2 == 0) {
-                this.disabled = false;
-            } else {
-                this.disabled = true;
-            }
-        }
+        disabled = (playerID == 1) ^ (turnCount % 2 != 0);
     }
 
     public String getInstructions(boolean disabled) {
