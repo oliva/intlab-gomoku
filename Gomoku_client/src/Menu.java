@@ -3,21 +3,15 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class Menu extends JFrame {
+
+    public JPanel panel = new JPanel();
+
     public Menu(int index) {
         if (index == 1) {
             JButton jbtStart = new JButton("Start");
             JButton jbtCredits = new JButton("Credits");
-
-            JPanel panel = new JPanel();
             panel.add(jbtStart);
             panel.add(jbtCredits);
-
-            // ImageIcon icon = new ImageIcon("gomba.png");
-            // JLabel thumb = new JLabel();
-            // thumb.setIcon(icon);
-            // setContentPane(thumb);
-            // panel.add(thumb);
-
             add(panel);
             setTitle("Main menu");
             setSize(500, 500);
@@ -31,7 +25,6 @@ public class Menu extends JFrame {
             jbtCredits.addActionListener(listener2);
         } else {
             JLabel credits = new JLabel("mi");
-            JPanel panel = new JPanel();
             panel.add(credits);
             add(panel);
             setTitle("Credits");

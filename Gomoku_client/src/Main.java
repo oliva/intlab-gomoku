@@ -5,7 +5,4 @@ public class Main {
 
 	}
 
-	void asd() {
-	}
-
 }

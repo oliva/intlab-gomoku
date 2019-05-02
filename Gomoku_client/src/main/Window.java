@@ -25,6 +25,9 @@ public class Window extends JFrame {
     private Color myColor;
     private Color theirColor;
     private String instructions;
+    private boolean playerReady = false;
+    private boolean opponentReady = false;
+    private boolean gameStarted = false;
     private boolean playerWonGame = false;
     private Board board;
     private ClientSideConnection csc;
@@ -45,6 +48,31 @@ public class Window extends JFrame {
         this.setVisible(true);
     }
 
+    // append b to a
+    public int[][] append(int[][] a, int[][] b) {
+        int[][] result;
+        if (a == null) {
+            result = b;
+        } else {
+            result = new int[a.length + b.length][];
+            System.arraycopy(a, 0, result, 0, a.length);
+            System.arraycopy(b, 0, result, a.length, b.length);
+        }
+        return result;
+    }
+
+    public boolean matchFound(int[][] move, int[][] moves) {
+        if (moves == null) {
+            return false;
+        }
+        for (int i = 0; i < moves.length; i++) {
+            if (Arrays.equals(moves[i], move[0])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void setDisabled() {
         disabled = (playerID == 1) ^ (turnCount % 2 != 0);
     }
@@ -54,44 +82,6 @@ public class Window extends JFrame {
             return "Wait for your turn";
         } else {
             return "Your move";
-        }
-    }
-    
-    public class Board extends JPanel {
-
-        public void paintComponent(Graphics g) {
-            g.setColor(Color.DARK_GRAY);
-            g.fillRect(0, 0, width, height);
-            int x, y;
-            for (int i = 0; i < 15; i++) {
-                for (int j = 0; j < 15; j++) {
-                    g.setColor(Color.LIGHT_GRAY);
-                    int[] pos = { i, j };
-                    x = spacing + i * (spacing + squareWidth);
-                    y = spacing + j * (spacing + squareWidth);
-                    if (myMoves != null) {
-                        for (int n = 0; n < myMoves.length; n++) {
-                            if (Arrays.equals(myMoves[n], pos)) {
-                                g.setColor(myColor);
-                            }
-                        }
-                    }
-                    if (theirMoves != null) {
-                        for (int n = 0; n < theirMoves.length; n++) {
-                            if (Arrays.equals(theirMoves[n], pos)) {
-                                g.setColor(theirColor);
-                            }
-                        }
-                    }
-                    g.fillRect(x, y + infoHeight, squareWidth, squareWidth);
-                }
-            }
-
-            g.setColor(Color.WHITE);
-            setDisabled();
-            instructions = getInstructions(disabled);
-            g.setFont(new Font("tahoma", Font.PLAIN, 30));
-            g.drawString(instructions, 20, 50);
         }
     }
 
@@ -105,29 +95,84 @@ public class Window extends JFrame {
         }
     }
 
-    public static int[][] append(int[][] a, int[][] b) {
-        int[][] result = new int[a.length + b.length][];
-        System.arraycopy(a, 0, result, 0, a.length);
-        System.arraycopy(b, 0, result, a.length, b.length);
-        return result;
-    }
-
-    public static boolean matchFound(int[][] move, int[][] myMoves) {
-        for (int i = 0; i < myMoves.length; i++) {
-            if (Arrays.equals(myMoves[i], move[0])) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void connectToServer() {
         csc = new ClientSideConnection();
         Thread t = new Thread(csc);
         t.start();
     }
 
-    private class ClientSideConnection implements Runnable {
+    public void addToTheirMoves(int[][] move) {
+        if (theirMoves == null) {
+            theirMoves = move;
+        } else {
+            theirMoves = append(theirMoves, move);
+        }
+    }
+    
+    public class Board extends JPanel {
+
+        void renderMenu(Graphics g) {
+            setTitle("Menu");
+            g.setColor(Color.WHITE);
+            int xStart = (width - 200) / 2;
+            int yStart = 100;
+            g.drawRect(xStart, yStart, 200, 80);
+            g.setFont(new Font("tahoma", Font.PLAIN, 30));
+            g.drawString("Start", xStart + 65, yStart + 50);
+
+            int xCredits = (width - 200) / 2;
+            int yCredits = 250;
+            g.drawRect(xCredits, yCredits, 200, 80);
+            g.setFont(new Font("tahoma", Font.PLAIN, 30));
+            g.drawString("Credits", xCredits + 50, yStart + 200);
+        }
+
+        void renderWaitingMessage(Graphics g) {
+            
+        }
+        
+        public void paintComponent(Graphics g) {
+            
+            g.setColor(Color.DARK_GRAY);
+            g.fillRect(0, 0, width, height);
+
+            if (!gameStarted) {
+                renderMenu(g);
+            } else {
+                int x, y;
+                for (int i = 0; i < 15; i++) {
+                    for (int j = 0; j < 15; j++) {
+                        g.setColor(Color.LIGHT_GRAY);
+                        int[] pos = { i, j };
+                        x = spacing + i * (spacing + squareWidth);
+                        y = spacing + j * (spacing + squareWidth);
+                        if (myMoves != null) {
+                            for (int n = 0; n < myMoves.length; n++) {
+                                if (Arrays.equals(myMoves[n], pos)) {
+                                    g.setColor(myColor);
+                                }
+                            }
+                        }
+                        if (theirMoves != null) {
+                            for (int n = 0; n < theirMoves.length; n++) {
+                                if (Arrays.equals(theirMoves[n], pos)) {
+                                    g.setColor(theirColor);
+                                }
+                            }
+                        }
+                        g.fillRect(x, y + infoHeight, squareWidth, squareWidth);
+                    }
+                }
+                g.setColor(Color.WHITE);
+                setDisabled();
+                instructions = getInstructions(disabled);
+                g.setFont(new Font("tahoma", Font.PLAIN, 30));
+                g.drawString(instructions, 20, 50);
+            }
+        }
+    }
+
+    public class ClientSideConnection implements Runnable {
         private Socket socket;
         private DataInputStream dataIn;
         private DataOutputStream dataOut;
@@ -147,24 +192,43 @@ public class Window extends JFrame {
             }
         }
 
-        public void updateMoves(int[][] move) {
-            if (theirMoves == null) {
-                theirMoves = move;
-            } else {
-                theirMoves = append(theirMoves, move);
-            }
-        }
-
         public void receiveData() {
+            // System.out.println(gameStarted + " (receiveData)");
             try {
-                int x = dataIn.readInt();
-                int y = dataIn.readInt();
-                int[][] move = { { x, y } };
-                updateMoves(move);
-                turnCount = dataIn.readInt();
+                if (opponentReady) {
+                    System.out.println("\n\nreceiveData() block (opponent not ready branch):");
+                    if (!playerReady){
+                        int numPlayersReady = dataIn.readInt();
+                        System.out.println("numPlayersReady = " + numPlayersReady);
+                        gameStarted = numPlayersReady == 2;
+                        System.out.println("playerReady = " + playerReady);
+                        playerReady = gameStarted;
+                        System.out.println("gameStarted = " + gameStarted);
+                    } else {
+    
+                        int x = dataIn.readInt();
+                        int y = dataIn.readInt();
+                        int[][] move = { { x, y } };
+                        addToTheirMoves(move);
+                        turnCount = dataIn.readInt();
+                    }
+                } else {
+                    System.out.println("\n\nreceiveData() block (opponent not ready branch):");
+                    System.out.println("playerReady = " + playerReady);
+                    int numPlayersReady = dataIn.readInt();
+                    System.out.println("numPlayersReady = " + numPlayersReady);
+                    opponentReady = true;
+                    if (numPlayersReady == 2) {
+                        playerReady = true;
+                    }
+                    System.out.println("opponentReady = " + opponentReady);
+                    System.out.println("playerReady = " + playerReady);
+                    gameStarted = (numPlayersReady == 2);
+                    System.out.println("gameStarted = " + gameStarted);
+                }
                 board.repaint();
-            } catch (Exception e) {
-                System.out.println("IOException from CSC: receiveData() method");
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
 
@@ -178,34 +242,82 @@ public class Window extends JFrame {
 
     public class Click implements MouseListener {
 
+        public int[][] getMove(MouseEvent e) {
+            int x = e.getX() / (spacing + squareWidth);
+            int y = (e.getY() - infoHeight - windowTop) / (spacing + squareWidth);
+            int[][] move = { { x, y } };
+            return move;
+        }
+
+        public void sendMoveData(int x, int y) {
+            try {
+                csc.dataOut.writeInt(x);
+                csc.dataOut.writeInt(y);
+                csc.dataOut.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void addToMyMoves(int[][] move) {
+            boolean noConflict = !matchFound(move, myMoves) && !matchFound(move, theirMoves);
+            if (noConflict) {
+                myMoves = append(myMoves, move);
+                sendMoveData(move[0][0], move[0][1]);
+                turnCount += 1;
+            }
+        }
+
+        public boolean startButtonClicked(MouseEvent e) {
+            boolean inXRange = e.getX() >= (width - 200) / 2 && e.getX() <= (width - 200) / 2 + 200;
+            boolean inYRange = e.getY() >= 100 + windowTop && e.getY() <= 180 + windowTop;
+            if (inXRange && inYRange) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        public boolean creditsButtonClicked(MouseEvent e) {
+            boolean inXRange = e.getX() >= (width - 200) / 2 && e.getX() <= (width - 200) / 2 + 200;
+            boolean inYRange = e.getY() >= 250 + windowTop && e.getY() <= 330 + windowTop;
+            if (inXRange && inYRange) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        public void addPlayer() {
+            try {
+                System.out.println("player" + playerID + "sending a 1 to the server");
+                csc.dataOut.writeInt(1);
+                csc.dataOut.flush();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (!disabled) {
-                int x = e.getX() / (spacing + squareWidth);
-                int y = (e.getY() - infoHeight - windowTop) / (spacing + squareWidth);
-                int[][] move = { { x, y } };
-                if (myMoves == null) {
-                    try {
-                        csc.dataOut.writeInt(x);
-                        csc.dataOut.writeInt(y);
-                    } catch (IOException e1) {
-                        // TODO Auto-generated catch block
-                        e1.printStackTrace();
-                    }
-                    myMoves = move;
-                    turnCount += 1;
-                } else {
-                    if (!matchFound(move, myMoves)) {
-                        myMoves = append(myMoves, move);
-                        try {
-                            csc.dataOut.writeInt(x);
-                            csc.dataOut.writeInt(y);
-                        } catch (IOException e1) {
-                            // TODO Auto-generated catch block
-                            e1.printStackTrace();
-                        }
-                        turnCount += 1;
-                    }
+            // System.out.println(gameStarted + " (mouseClicked)");
+            if (gameStarted) {
+                if (!disabled) {
+                    int[][] move = getMove(e);
+                    addToMyMoves(move); // also sends to server with sendMoveData() method
+                    board.repaint();
+                }
+            } else {
+                if (startButtonClicked(e)) {
+                    System.out.println("\n\nmouseClicked() block:");
+                    playerReady = true;
+                    System.out.println("playerReady = " + playerReady);
+                    // System.out.println("player " + playerID + " is ready");
+                    gameStarted = opponentReady && playerReady;
+                    System.out.println("gameStarted = " + gameStarted);
+                    addPlayer();
+                } else if (creditsButtonClicked(e)) {
+                    
                 }
                 board.repaint();
             }

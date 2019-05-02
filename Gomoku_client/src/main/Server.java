@@ -12,6 +12,8 @@ public class Server {
     private ServerSideConnection player2;
     private int[][] player1Moves;
     private int[][] player2Moves;
+    private boolean gameStarted = false;
+    private int numPlayersReady = 0;
     private int turnCount = 1;
 
     public Server() {
@@ -88,7 +90,18 @@ public class Server {
                     player.dataOut.writeInt(turnCount);
                     player.dataOut.flush();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void inform(int numPlayersReady, ServerSideConnection player) {
+            if (player != null) {
+                try {
+                    System.out.println("server sends out numPlayersReady: " + numPlayersReady + " to player " + player.playerID + " client");
+                    player.dataOut.writeInt(numPlayersReady);
+                    player.dataOut.flush();
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -100,15 +113,30 @@ public class Server {
                 dataOut.writeInt(turnCount);
                 dataOut.flush();
                 while (true) {
-                    int x = dataIn.readInt();
-                    int y = dataIn.readInt();
-                    int[][] move = { { x, y } };
-                    if (playerID == 1) {
-                        player1Moves = addMove(move, player1Moves);
-                        sendData(move, player2);
+                    if (gameStarted) {
+                        int x = dataIn.readInt();
+                        int y = dataIn.readInt();
+                        int[][] move = { { x, y } };
+                        if (playerID == 1) {
+                            player1Moves = addMove(move, player1Moves);
+                            sendData(move, player2);
+                        } else {
+                            player2Moves = addMove(move, player2Moves);
+                            sendData(move, player1);
+                        }
                     } else {
-                        player2Moves = addMove(move, player2Moves);
-                        sendData(move, player1);
+                        System.out.println("\n\nServer side connection reading ready states:");
+                        int increment = dataIn.readInt();
+                        System.out.println("Server " + playerID + " received a " + increment + " from its client");
+                        numPlayersReady += increment;
+                        System.out.println("numPlayersReady = " + numPlayersReady);
+                        if (playerID == 1) {
+                            inform(numPlayersReady, player2);
+                        } else {
+                            inform(numPlayersReady, player1);
+                        }
+                        gameStarted = numPlayersReady == 2;
+                        System.out.println("gameStarted: " + gameStarted);
                     }
                 }
             } catch (IOException ex) {
