@@ -2,9 +2,7 @@ package main;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.util.Arrays;
@@ -58,12 +56,12 @@ public class Window extends JFrame {
             return "Your move";
         }
     }
-
+    
     public class Board extends JPanel {
 
         public void paintComponent(Graphics g) {
             g.setColor(Color.DARK_GRAY);
-            g.fillRect(0, 0, width, height); // Size of upper part of the window is 22
+            g.fillRect(0, 0, width, height);
             int x, y;
             for (int i = 0; i < 15; i++) {
                 for (int j = 0; j < 15; j++) {
@@ -124,14 +122,11 @@ public class Window extends JFrame {
     }
 
     public void connectToServer() {
-        // System.out.println("started connection to server");
         csc = new ClientSideConnection();
         Thread t = new Thread(csc);
         t.start();
-        // System.out.println("ended connection to server");
     }
 
-    // Client Connection
     private class ClientSideConnection implements Runnable {
         private Socket socket;
         private DataInputStream dataIn;
@@ -147,8 +142,16 @@ public class Window extends JFrame {
                 turnCount = dataIn.readInt();
                 System.out.println("You are connected to the server as Player " + playerID);
                 setColors(playerID);
-            } catch (IOException ex) {
+            } catch (Exception e) {
                 System.out.println("IOException from CSC constructor");
+            }
+        }
+
+        public void updateMoves(int[][] move) {
+            if (theirMoves == null) {
+                theirMoves = move;
+            } else {
+                theirMoves = append(theirMoves, move);
             }
         }
 
@@ -156,16 +159,11 @@ public class Window extends JFrame {
             try {
                 int x = dataIn.readInt();
                 int y = dataIn.readInt();
-                turnCount = dataIn.readInt();
                 int[][] move = { { x, y } };
-                if (theirMoves == null) {
-                    theirMoves = move;
-                } else {
-                    theirMoves = append(theirMoves, move);
-                }
+                updateMoves(move);
+                turnCount = dataIn.readInt();
                 board.repaint();
             } catch (Exception e) {
-                // TODO: handle exception
                 System.out.println("IOException from CSC: receiveData() method");
             }
         }
