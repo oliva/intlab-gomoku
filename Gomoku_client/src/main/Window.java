@@ -126,10 +126,14 @@ public class Window extends JFrame {
         return result;
     }
 
-    public static boolean matchFound(int[][] move, int[][] myMoves) {
-        for (int i = 0; i < myMoves.length; i++) {
-            if (Arrays.equals(myMoves[i], move[0])) {
-                return true;
+    public static boolean matchFound(int[][] move, int[][] moves) {
+        if (moves == null) {
+            return false;
+        } else {
+            for (int i = 0; i < moves.length; i++) {
+                if (Arrays.equals(moves[i], move[0])) {
+                    return true;
+                }
             }
         }
         return false;
@@ -198,7 +202,7 @@ public class Window extends JFrame {
                 int x = e.getX() / (spacing + squareWidth);
                 int y = (e.getY() - infoHeight - windowTop) / (spacing + squareWidth);
                 int[][] move = { { x, y } };
-                if (myMoves == null) {
+                if (myMoves == null && !matchFound(move, theirMoves)) {
                     try {
                         csc.dataOut.writeInt(x);
                         csc.dataOut.writeInt(y);
@@ -209,7 +213,7 @@ public class Window extends JFrame {
                     myMoves = move;
                     turnCount += 1;
                 } else {
-                    if (!matchFound(move, myMoves)) {
+                    if (!matchFound(move, myMoves) && !matchFound(move, theirMoves)) {
                         myMoves = append(myMoves, move);
                         try {
                             csc.dataOut.writeInt(x);
