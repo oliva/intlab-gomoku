@@ -28,6 +28,7 @@ public class Window extends JFrame {
     private Color theirColor;
     private String instructions;
     private boolean playerWonGame = false;
+    private Board board;
     private ClientSideConnection csc;
 
     public Window() {
@@ -37,7 +38,7 @@ public class Window extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
 
-        Board board = new Board();
+        board = new Board();
         this.setContentPane(board);
 
         Click click = new Click();
@@ -174,6 +175,7 @@ public class Window extends JFrame {
                 } else {
                     theirMoves = append(theirMoves, move);
                 }
+                board.repaint();
             } catch (Exception e) {
                 // TODO: handle exception
                 System.out.println("IOException from CSC: receiveData() method");
@@ -193,7 +195,6 @@ public class Window extends JFrame {
         @Override
         public void mouseClicked(MouseEvent e) {
             if (!disabled) {
-
                 int x = e.getX() / (spacing + squareWidth);
                 int y = (e.getY() - infoHeight - windowTop) / (spacing + squareWidth);
                 int[][] move = { { x, y } };
@@ -220,6 +221,7 @@ public class Window extends JFrame {
                         turnCount += 1;
                     }
                 }
+                board.repaint();
             }
         }
 

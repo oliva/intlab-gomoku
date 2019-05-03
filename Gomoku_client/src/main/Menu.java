@@ -113,7 +113,7 @@ class CreditsListenerClass implements ActionListener {
 
        
         menu.panel.removeAll();
-        menu.credits = new JLabel("Belkacemi Nordin, Temlin Olivér, Kohlmann Dániel");
+        menu.credits = new JLabel("Belkacemi Nordin, Temlin Oliver, Kohlmann Daniel");
         Font font=new Font("ariel",1,20);
         
         menu.credits.setFont(font);
