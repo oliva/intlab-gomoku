@@ -20,7 +20,7 @@ public class Server {
         try {
             serverSocket = new ServerSocket(2222);
         } catch (IOException ex) {
-            System.out.println("IOException from Server Constructor");
+            ex.printStackTrace();
         }
     }
 
@@ -42,15 +42,20 @@ public class Server {
             }
             System.out.println("2 players connected. No longer accepting connections");
         } catch (IOException ex) {
-            System.out.println("IOException from acceptConnections method");
+            ex.printStackTrace();
         }
     }
 
+    // append b to a
     public static int[][] append(int[][] a, int[][] b) {
-        int[][] result = new int[a.length + b.length][];
-        System.arraycopy(a, 0, result, 0, a.length);
-        System.arraycopy(b, 0, result, a.length, b.length);
-        return result;
+        if (a == null) {
+            return b;
+        } else {
+            int[][] result = new int[a.length + b.length][];
+            System.arraycopy(a, 0, result, 0, a.length);
+            System.arraycopy(b, 0, result, a.length, b.length);
+            return result;
+        }
     }
 
     private class ServerSideConnection implements Runnable {
@@ -66,16 +71,12 @@ public class Server {
                 dataIn = new DataInputStream(socket.getInputStream());
                 dataOut = new DataOutputStream(socket.getOutputStream());
             } catch (IOException ex) {
-                System.out.println("IOException from SSC constructor");
+                ex.printStackTrace();
             }
         }
 
         public int[][] addMove(int[][] move, int[][] moves) {
-            if (moves == null) {
-                moves = move;
-            } else {
-                moves = append(moves, move);
-            }
+            moves = append(moves, move);
             turnCount += 1;
             return moves;
         }
@@ -87,33 +88,49 @@ public class Server {
                     player.dataOut.writeInt(move[0][1]);
                     player.dataOut.writeInt(turnCount);
                     player.dataOut.flush();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+
+        public void sendInitData() {
+            try {
+                dataOut.writeInt(playerID);
+                dataOut.writeInt(turnCount);
+                dataOut.flush();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        public void addOpponentMoves(int[][] move) {
+            if (playerID == 1) {
+                player1Moves = addMove(move, player1Moves);
+                sendData(move, player2);
+            } else {
+                player2Moves = addMove(move, player2Moves);
+                sendData(move, player1);
+            }
+        }
+
+        public void listen() {
+            while (true) {
+                try {
+                    int x = dataIn.readInt();
+                    int y = dataIn.readInt();
+                    int[][] move = { { x, y } };
+                    addOpponentMoves(move);
+                } catch (IOException ex) {
+                    System.out.println("Player " + playerID + " disconnected");
+                    break;
                 }
             }
         }
 
         public void run() {
-            try {
-                dataOut.writeInt(playerID);
-                dataOut.writeInt(turnCount);
-                dataOut.flush();
-                while (true) {
-                    int x = dataIn.readInt();
-                    int y = dataIn.readInt();
-                    int[][] move = { { x, y } };
-                    if (playerID == 1) {
-                        player1Moves = addMove(move, player1Moves);
-                        sendData(move, player2);
-                    } else {
-                        player2Moves = addMove(move, player2Moves);
-                        sendData(move, player1);
-                    }
-                }
-            } catch (IOException ex) {
-                System.out.println("IOException from run() SSC");
-            }
+            sendInitData();
+            listen();
         }
     }
 
