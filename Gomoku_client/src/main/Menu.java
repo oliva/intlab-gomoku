@@ -3,6 +3,9 @@ package main;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+
+import main.Menu.PlayThread;
+
 import java.io.*;
 import javax.sound.sampled.*;
 
@@ -14,15 +17,15 @@ public class Menu extends JFrame
 	JButton jbtQuit;
 	JButton jbtBack;
 	JButton jbtMute;
-	JLabel credits;
+	JLabel label;
 	GridBagConstraints c;
 	AudioFormat audioFormat;
 	AudioInputStream audioInputStream;
 	SourceDataLine sourceDataLine;
-	boolean stopPlayback = false;
+	boolean stopPlayback;
+	boolean gameover;
 	
-	
-    public Menu() 
+    public Menu() //constructor
     {
         
             jbtStart = new JButton("Start Game");
@@ -31,23 +34,24 @@ public class Menu extends JFrame
             jbtQuit = new JButton("Quit");
             jbtBack = new JButton("Back");
             
-           
-            
+            //initialization
+            gameover=false;
             panel = new JPanel(new GridBagLayout());
             c = new GridBagConstraints();
             c.fill = GridBagConstraints.HORIZONTAL;
-            credits = new JLabel("Gomoku");
+            label = new JLabel("Gomoku");
             Font font=new Font("ariel",1,20);
+            label.setFont(font);
+            label.setForeground(Color.white);
+            stopPlayback = false;
             playAudio("music/main.wav");
-            credits.setFont(font);
-            credits.setForeground(Color.white);
-            
+            //adding the elements
             c.ipady = 100;      
             c.weightx = 0.5;
             c.gridwidth = 1;
             c.gridx = 1;
             c.gridy = 0;
-            panel.add(credits,c);
+            panel.add(label,c);
             c.ipady = 50;      
             c.weightx = 0.0;
             c.gridwidth = 1;
@@ -72,10 +76,10 @@ public class Menu extends JFrame
             
            
             
-            
+            //final details
             add(panel);
             setTitle("Main menu");
-            setSize(400, 360);
+            setSize(400, 410);
             setLocation(500, 500);
             Color color = new Color(64,64,64);
             panel.setBackground(color);
@@ -100,8 +104,97 @@ public class Menu extends JFrame
     }
     
    
+    public void win() //winner players method
+    {
+    	gameover=true;
+    	//stop the current music, and start the winners music
+        stopPlayback = true; 
+        try {
+			Thread.sleep(700); //its a must to play the proper music
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        
+        stopPlayback = false;
+    	playAudio("music/win.wav");
+    	
+        //Appearance of the window
+    	setVisible(true);
+    	panel.removeAll();
+    	repaint();
+    	
+    	label=new JLabel();
+    	label.setIcon(new ImageIcon("images/win.gif"));
+    	c.ipady = 20;      
+        c.weightx = 0.5;
+        c.gridwidth = 1;
+        c.gridx = 1;
+        c.gridy = 1;
+    	panel.add(jbtBack,c);
+    	c.ipady = 40;      
+        c.weightx = 0.5;
+        c.gridwidth = 1;
+        c.gridx = 1;
+        c.gridy = 0;
+    	panel.add(label,c);
+    	setSize(400,420);
+    	
+    	
+    	
+    	
+    	
+    }
     
-    public void playAudio(String song) {
+    public void lose() //loser players method
+    {
+        gameover=true;
+        //stop the current music, and start the losers music
+        stopPlayback = true; 
+        try {
+			Thread.sleep(700); //its a must to play the proper music
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        stopPlayback = false;
+    	playAudio("music/lost.wav");
+    	
+        
+    	setVisible(true);
+    	panel.removeAll();
+    	repaint();
+    	
+    	//Appearance of the window
+    	label=new JLabel("Game over");
+    	Font font=new Font("ariel",1,40);
+    	label.setFont(font);
+    	label.setForeground(Color.white);
+    	label.setHorizontalAlignment(JLabel.CENTER);
+    	
+    	c.ipady = 20;      
+        c.weightx = 0.5;
+        c.gridwidth = 1;
+        c.gridx = 1;
+        c.gridy = 1;
+    	panel.add(jbtBack,c);
+    	c.ipady = 40;      
+        c.weightx = 0.5;
+        c.gridwidth = 1;
+        c.gridx = 1;
+        c.gridy = 0;
+    	panel.add(label,c);
+    	setSize(400,420);
+    	
+    	
+    	
+    	
+    }
+    
+    
+    public void playAudio(String song) //audio player
+    {
+    	
 	    try
 	    {
 	      File soundFile =new File(song);
@@ -124,7 +217,7 @@ public class Menu extends JFrame
 	  }
 	
     
-    class PlayThread extends Thread //Inner class for music
+    class PlayThread extends Thread //Inner class for the music
     {
     	  byte tempBuffer[] = new byte[10000];
     	  String song;
@@ -154,10 +247,11 @@ public class Menu extends JFrame
     	      // data line to empty.
     	      sourceDataLine.drain();
     	      sourceDataLine.close();
-    	      if (stopPlayback ==false) playAudio(song); //replay if the song is ended
+    	      if (stopPlayback ==false && gameover==false) playAudio(song); //replay if the song is ended and the game is not over yet
     	     
     	      
-    	    }catch (Exception e) {
+    	    }catch (Exception e) 
+    	    {
     	      e.printStackTrace();
     	      System.exit(0);
     	    }
@@ -166,12 +260,14 @@ public class Menu extends JFrame
 
 }
 
-class StartListenerClass implements ActionListener {
+class StartListenerClass implements ActionListener //Start button listener, starts the game 
+{
 	Menu menu;
 	StartListenerClass(Menu menu){this.menu=menu;}
 	@Override
     
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e) 
+	{
 		menu.panel.removeAll();
 		menu.panel.repaint();
         System.out.println("Start button clicked");
@@ -182,21 +278,22 @@ class StartListenerClass implements ActionListener {
     }
 }
 
-class CreditsListenerClass implements ActionListener {
+class CreditsListenerClass implements ActionListener //Credits button listener, paints the credits page
+{
 	Menu menu;
 	CreditsListenerClass(Menu menu){this.menu=menu;}
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e) 
+    {
         System.out.println("Credits button clicked");
         
-       
-       
+    	//Appearance of the credits
         menu.panel.removeAll();
-        menu.credits = new JLabel("Belkacemi Nordin, Temlin Oliver, Kohlmann Daniel");
+        menu.label = new JLabel("Belkacemi Nordin, Temlin Oliver, Kohlmann Daniel");
         Font font=new Font("ariel",1,20);
         
-        menu.credits.setFont(font);
-        menu.credits.setForeground(Color.white);
+        menu.label.setFont(font);
+        menu.label.setForeground(Color.white);
         menu.c.fill = GridBagConstraints.HORIZONTAL;
         
         menu.c.ipady = 20;      
@@ -204,7 +301,7 @@ class CreditsListenerClass implements ActionListener {
         menu.c.gridwidth = 1;
         menu.c.gridx = 1;
         menu.c.gridy = 1;
-        menu.panel.add(menu.credits,menu.c);
+        menu.panel.add(menu.label,menu.c);
         menu.c.gridy = 2;
         menu.panel.add(menu.jbtBack,menu.c);
         
@@ -217,12 +314,14 @@ class CreditsListenerClass implements ActionListener {
         
     }
 }
-class QuitListenerClass implements ActionListener {
+class QuitListenerClass implements ActionListener //Quit button listener, closes the program
+{
 	Menu menu;
 	QuitListenerClass(Menu menu){this.menu=menu;}
 	
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e)
+    {
         System.out.println("Quit button clicked");
         menu.dispatchEvent(new WindowEvent(menu, WindowEvent.WINDOW_CLOSING));
         
@@ -230,16 +329,18 @@ class QuitListenerClass implements ActionListener {
     }
 }
 
-class MuteListenerClass implements ActionListener {
+class MuteListenerClass implements ActionListener //Mute button listener, stops the current music/starts the main music
+{
 	Menu menu;
 	MuteListenerClass(Menu menu){this.menu=menu;}
 	
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e) 
+    {
         System.out.println("Mute button clicked");
         if(menu.stopPlayback==false) menu.stopPlayback=true;
         else {
-        	 menu.stopPlayback=false;
+        	menu.stopPlayback=false;
         	menu.playAudio("music/main.wav");
        
         }
@@ -247,30 +348,30 @@ class MuteListenerClass implements ActionListener {
         
     }
 }
-class BackListenerClass implements ActionListener {
+class BackListenerClass implements ActionListener //Back Button listener, takes us back to the main menu
+{
 	Menu menu;
 	BackListenerClass(Menu menu){this.menu=menu;}
 	
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e)
+    {
         System.out.println("Back button clicked");
+        //outlook of the main menu
         menu.panel.removeAll();
-        
-        
         menu.c.fill = GridBagConstraints.HORIZONTAL;
         
-        menu.credits = new JLabel("Gomoku");
+        menu.label = new JLabel("Gomoku");
         Font font=new Font("ariel",1,20);
-        
-        menu.credits.setFont(font);
-        menu.credits.setForeground(Color.white);
+        menu.label.setFont(font);
+        menu.label.setForeground(Color.white);
         
         menu.c.ipady = 100;      
         menu.c.weightx = 0.5;
         menu.c.gridwidth = 1;
         menu.c.gridx = 1;
         menu.c.gridy = 0;
-        menu.panel.add(menu.credits,menu.c);
+        menu.panel.add(menu.label,menu.c);
         menu.c.ipady = 50;      
         menu.c.weightx = 0.0;
         menu. c.gridwidth = 1;
@@ -293,8 +394,22 @@ class BackListenerClass implements ActionListener {
         menu.  c.gridy = 4;
         menu.panel.add(menu.jbtQuit,menu.c);
 
-        menu.setSize(400,360);
-        
+        menu.setSize(400,410);
+        //stops the end music, and starts the main theme
+        if(menu.gameover==true)
+        	{
+        	 menu.stopPlayback = true; 
+             try {
+     			Thread.sleep(700); //its a must to play the proper music
+     		} catch (InterruptedException e1) {
+     			// TODO Auto-generated catch block
+     			e1.printStackTrace();
+     		}
+        	menu.stopPlayback = false;
+        	
+        	menu.playAudio("music/main.wav");
+        	menu.gameover=false;
+        	}
          
         
         
