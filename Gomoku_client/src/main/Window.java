@@ -29,6 +29,8 @@ public class Window extends JFrame {
     private String instructions;
     private boolean playerWonGame = false;
     private Board board;
+    private int numPlayers;
+    private boolean gameStarted = false;
     private ClientSideConnection csc;
     
     public Window() {
@@ -52,14 +54,19 @@ public class Window extends JFrame {
     }
 
     public void setDisabled() {
+        // System.out.println("playerID = " + playerID + ", turnCount = " + turnCount);
         disabled = playerID == 1 ^ turnCount % 2 != 0;
     }
 
     public String getInstructions(boolean disabled) {
-        if (disabled) {
-            return "Wait for your turn";
+        if (!gameStarted) {
+            return "Waiting for an opponent";
         } else {
-            return "Your move";
+            if (disabled) {
+                return "Wait for your turn";
+            } else {
+                return "Your move";
+            }
         }
     }
     
@@ -174,30 +181,48 @@ public class Window extends JFrame {
                 dataOut = new DataOutputStream(socket.getOutputStream());
                 playerID = dataIn.readInt();
                 turnCount = dataIn.readInt();
+                if (playerID == 2) {
+                    gameStarted = true;
+                }
                 System.out.println("You are connected to the server as Player " + playerID);
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
         }
 
-        public void receiveData() {
+        public void listen() {
+            while (true) {
+                try {
+                    int x = dataIn.readInt();
+                    int y = dataIn.readInt();
+                    turnCount = dataIn.readInt();
+                    int[][] move = { { x, y } };
+                    theirMoves = append(theirMoves, move);
+                    board.repaint();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+
+        public void waitForOpponent() {
             try {
-                int x = dataIn.readInt();
-                int y = dataIn.readInt();
-                turnCount = dataIn.readInt();
-                int[][] move = { { x, y } };
-                theirMoves = append(theirMoves, move);
-                board.repaint();
-            } catch (IOException ex) {
+                numPlayers = dataIn.readInt();
+                if (numPlayers == 2) {
+                    gameStarted = true;
+                    board.repaint();
+                }
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
 
         @Override
         public void run() {
-            while (true) {
-                receiveData();
+            if (playerID == 1 && !gameStarted) {
+                waitForOpponent();
             }
+            listen();
         }
     }
 
@@ -214,6 +239,7 @@ public class Window extends JFrame {
             try {
                 csc.dataOut.writeInt(move[0][0]);
                 csc.dataOut.writeInt(move[0][1]);
+                csc.dataOut.flush();
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -229,7 +255,7 @@ public class Window extends JFrame {
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            if (!disabled) {
+            if (!disabled && gameStarted) {
                 int[][] move = getMove(e);
                 addMove(move);
                 board.repaint();

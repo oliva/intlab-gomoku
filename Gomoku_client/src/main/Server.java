@@ -94,6 +94,15 @@ public class Server {
             }
         }
 
+        public void sendNumPlayers(int numPlayers, ServerSideConnection player) {
+            try {
+                player.dataOut.writeInt(numPlayers);
+                player.dataOut.flush();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
         public void sendInitData() {
             try {
                 dataOut.writeInt(playerID);
@@ -130,6 +139,9 @@ public class Server {
 
         public void run() {
             sendInitData();
+            if (playerID == 2) {
+                sendNumPlayers(numPlayers, player1);
+            }
             listen();
         }
     }
