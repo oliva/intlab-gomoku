@@ -12,10 +12,11 @@ public class Server {
     private ServerSideConnection player2;
     private int[][] player1Moves;
     private int[][] player2Moves;
-    private int turnCount = 1;
+    private Gamestate gamestate;
 
     public Server() {
         System.out.println("----Game Server----");
+        gamestate = new Gamestate();
         numPlayers = 0;
         try {
             serverSocket = new ServerSocket(2222);
@@ -77,7 +78,9 @@ public class Server {
 
         public int[][] addMove(int[][] move, int[][] moves) {
             moves = append(moves, move);
-            turnCount += 1;
+            //TODO
+            gamestate.turn++;
+            //gamestate.place();
             return moves;
         }
 
@@ -86,7 +89,7 @@ public class Server {
                 try {
                     player.dataOut.writeInt(move[0][0]);
                     player.dataOut.writeInt(move[0][1]);
-                    player.dataOut.writeInt(turnCount);
+                    player.dataOut.writeInt(gamestate.turn+1);
                     player.dataOut.flush();
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -97,7 +100,7 @@ public class Server {
         public void sendInitData() {
             try {
                 dataOut.writeInt(playerID);
-                dataOut.writeInt(turnCount);
+                dataOut.writeInt(gamestate.turn+1);
                 dataOut.flush();
             } catch (IOException ex) {
                 ex.printStackTrace();
