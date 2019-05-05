@@ -44,7 +44,7 @@ public class Menu extends JFrame
             label.setFont(font);
             label.setForeground(Color.white);
             stopPlayback = false;
-            playAudio("music/main.wav");
+            playAudio("../music/main.wav");
             //adding the elements
             c.ipady = 100;      
             c.weightx = 0.5;
@@ -117,7 +117,7 @@ public class Menu extends JFrame
 		}
         
         stopPlayback = false;
-    	playAudio("music/win.wav");
+    	playAudio("../music/win.wav");
     	
         //Appearance of the window
     	setVisible(true);
@@ -158,7 +158,7 @@ public class Menu extends JFrame
 			e1.printStackTrace();
 		}
         stopPlayback = false;
-    	playAudio("music/lost.wav");
+    	playAudio("../music/lost.wav");
     	
         
     	setVisible(true);
@@ -341,7 +341,7 @@ class MuteListenerClass implements ActionListener //Mute button listener, stops 
         if(menu.stopPlayback==false) menu.stopPlayback=true;
         else {
         	menu.stopPlayback=false;
-        	menu.playAudio("music/main.wav");
+        	menu.playAudio("../music/main.wav");
        
         }
         
@@ -407,7 +407,7 @@ class BackListenerClass implements ActionListener //Back Button listener, takes 
      		}
         	menu.stopPlayback = false;
         	
-        	menu.playAudio("music/main.wav");
+        	menu.playAudio("../music/main.wav");
         	menu.gameover=false;
         	}
          
