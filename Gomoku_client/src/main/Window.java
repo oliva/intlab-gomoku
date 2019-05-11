@@ -7,6 +7,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 public class Window extends JFrame {
@@ -170,13 +172,23 @@ public class Window extends JFrame {
     // Client Connection
     private class ClientSideConnection implements Runnable {
         private Socket socket;
+        private int port;
         private DataInputStream dataIn;
         private DataOutputStream dataOut;
 
         public ClientSideConnection() {
             System.out.println("----Client----");
+            //read the port number, from the config text
+            try (BufferedReader br = Files.newBufferedReader(Paths.get("config/clientconf.txt"))) 
+            {
+            	port=Integer.valueOf(br.readLine());
+            } 
+            catch (IOException e) 
+            {
+                System.err.format("File not found", e);
+            }
             try {
-                socket = new Socket("localhost", 2222);
+                socket = new Socket("localhost", port);
                 dataIn = new DataInputStream(socket.getInputStream());
                 dataOut = new DataOutputStream(socket.getOutputStream());
                 playerID = dataIn.readInt();

@@ -3,11 +3,10 @@ package main;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-
-import main.Menu.PlayThread;
-
 import java.io.*;
 import javax.sound.sampled.*;
+
+
 
 public class Menu extends JFrame
 {
@@ -25,9 +24,14 @@ public class Menu extends JFrame
 	boolean stopPlayback;
 	boolean gameover;
 
-    public Menu() //constructor
+	
+	
+	
+	
+    public Menu()//constructor
     {
-
+  	
+    	
             jbtStart = new JButton("Start Game");
             jbtCredits = new JButton("Credits");
             jbtMute = new JButton("Mute");

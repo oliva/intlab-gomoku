@@ -2,6 +2,8 @@ package main;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class Server {
@@ -13,13 +15,23 @@ public class Server {
     private int[][] player1Moves;
     private int[][] player2Moves;
     private Gamestate gamestate;
-
+    private int port;
     public Server() {
         System.out.println("----Game Server----");
         gamestate = new Gamestate();
         numPlayers = 0;
+    	
+        try (BufferedReader br = Files.newBufferedReader(Paths.get("config/serverconf.txt"))) //read the port number, from the config text
+        {
+        	port=Integer.valueOf(br.readLine());
+        } 
+        catch (IOException e) 
+        {
+            System.err.format("File not found", e);
+        }
+
         try {
-            serverSocket = new ServerSocket(2222);
+            serverSocket = new ServerSocket(port);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
