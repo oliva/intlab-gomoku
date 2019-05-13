@@ -276,8 +276,9 @@ class StartListenerClass implements ActionListener //Start button listener, star
 		menu.panel.repaint();
         System.out.println("Start button clicked");
         menu.setVisible(false);
-
-        new Thread(new Game()).start();
+        Game game =new Game();
+        game.addmenu(menu);
+        new Thread(game).start();
 
     }
 }

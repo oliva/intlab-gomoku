@@ -19,7 +19,7 @@ public class Window extends JFrame {
     private int height = width + infoHeight - windowTop;
     private int spacing = 3;
     private int squareWidth = 40;
-
+    
     // game
     private int playerID;
     private int turnCount;
@@ -34,12 +34,14 @@ public class Window extends JFrame {
     private int numPlayers;
     private boolean gameStarted = false;
     private ClientSideConnection csc;
+    public Menu menu;
     
-    public Window() {
+    public Window(Menu menu) {
         connectToServer();
         setColors(playerID);
         jFrameSetup();
         this.setVisible(true);
+        this.menu=menu;
     }
 
     public void jFrameSetup() {
