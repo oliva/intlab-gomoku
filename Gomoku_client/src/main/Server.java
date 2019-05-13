@@ -98,14 +98,18 @@ public class Server {
 				case Invalid:
 					throw new RuntimeException();
 				case PointWhite:
-					//TODO notify everyone that the 1st player won
-					//move[0][0] = -move[0][0];
-					//move[0][2] = 1;
+					//notify everyone that the 1st player won
+					try {
+						player1.dataOut.writeInt(-2);
+						player2.dataOut.writeInt(-1);
+					} catch (IOException ignored) {}
 					break;
 				case PointBlack:
-					//TODO notify everyone that the 2nd player won
-					//move[0][0] = -move[0][0];
-					//move[0][2] = 2;
+					//notify everyone that the 2nd player won
+					try {
+						player1.dataOut.writeInt(-1);
+						player2.dataOut.writeInt(-2);
+					} catch (IOException ignored) {}
 					break;
 			}
 			moves = append(moves, move);

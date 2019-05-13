@@ -208,30 +208,22 @@ public class Window extends JFrame {
 			while (true) {
 				try {
 					int x = dataIn.readInt();
-					int y = dataIn.readInt();
-					//TODO handle win/loss messages in whatever format the server sends them
-					/*
-					int val = -1;
-					if (x < 0) {
-						x = -x;
-						val = dataIn.readInt();
+					//handle win/loss messages: -1 == win, -2 == loss
+					if(x<0) {
+						switch (x) {
+							case -1:
+								menu.win();
+								break;
+							case -2:
+								menu.lose();
+								break;
+						}
 					}
-					int z = dataIn.readInt();
-					turnCount = z<0 ? -z : z;
-					*/
+					int y = dataIn.readInt();
 					turnCount = dataIn.readInt();
 					int[][] move = {{x, y}};
 					theirMoves = append(theirMoves, move);
 					board.repaint();
-					/*
-					if (val != -1) { // notification of win/loss condition
-						if(val == 0) {
-							menu.win();
-						} else {
-							menu.lose();
-						}
-					}
-					*/
 				} catch (IOException ex) {
 					ex.printStackTrace();
 				}
