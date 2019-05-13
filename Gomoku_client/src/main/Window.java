@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
@@ -29,7 +29,6 @@ public class Window extends JFrame {
 	private Color myColor;
 	private Color theirColor;
 	private String instructions;
-	private boolean playerWonGame = false;
 	private Board board;
 	private int numPlayers;
 	private boolean gameStarted = false;
@@ -166,7 +165,7 @@ public class Window extends JFrame {
 	}
 
 	public void connectToServer() {
-		csc = new ClientSideConnection();
+		csc = new ClientSideConnection(this);
 		Thread t = new Thread(csc);
 		t.start();
 	}
@@ -177,8 +176,10 @@ public class Window extends JFrame {
 		private int port;
 		private DataInputStream dataIn;
 		private DataOutputStream dataOut;
+		private Window window;
 
-		public ClientSideConnection() {
+		public ClientSideConnection(Window window) {
+			this.window = window;
 			System.out.println("----Client----");
 			//read the port number, from the config text
 			try (BufferedReader br = Files.newBufferedReader(Paths.get("config/clientconf.txt")))
@@ -213,9 +214,11 @@ public class Window extends JFrame {
 						switch (x) {
 							case -1:
 								menu.win();
+								window.setVisible(false);
 								break;
 							case -2:
 								menu.lose();
+								window.setVisible(false);
 								break;
 						}
 					}

@@ -22,17 +22,26 @@ public class Gamestate {
 		Field color = state[x][y];
 		int[][] dir = {{0,0,0}, {0,0,0}, {0,0,0}};
 		for (int a = -1; a <= 1; a++) {
-			for (int b = -1; b < 1; b++) {
+			for (int b = -1; b <= 1; b++) {
 				try {
 					for (int i = 1; i < 6; i++) {
-						if (state[x+a*i][y+b*i] == color)
-							dir[a+1][b+1]++;
-						else
+						int tx=x+a*i, ty=y+b*i;
+						if (state[tx][ty] == color) {
+							System.out.println("match");
+							dir[a + 1][b + 1]++;
+						} else {
+							System.out.println("no match");
 							break;
+						}
 					}
 				} catch (IndexOutOfBoundsException ignored) {}
 			}
 		}
+
+		System.out.println("matrix\n" +
+				dir[0][0] + dir[0][1] + dir[0][2] + "\n" +
+				dir[1][0] + dir[1][1] + dir[1][2] + "\n" +
+				dir[2][0] + dir[2][1] + dir[2][2] + "\n");
 
 		if (dir[0][0] + dir[2][2] == 4
 		 || dir[0][1] + dir[2][1] == 4
