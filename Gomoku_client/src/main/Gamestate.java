@@ -20,12 +20,11 @@ public class Gamestate {
 	private Result checkPoint (int x, int y) {
 		//TODO check whether a point should be awarded
 		Field color = state[x][y];
-		int[][] dir = new int[3][3];
-		Arrays.fill(dir, 0);
+		int[][] dir = {{0,0,0}, {0,0,0}, {0,0,0}};
 		for (int a = -1; a <= 1; a++) {
 			for (int b = -1; b < 1; b++) {
 				try {
-					for (int i = 1; i < 4; i++) {
+					for (int i = 1; i < 6; i++) {
 						if (state[x+a*i][y+b*i] == color)
 							dir[a+1][b+1]++;
 						else
